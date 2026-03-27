@@ -24,8 +24,6 @@ def get_db_connection():
     password = os.getenv("MYSQLPASSWORD")
     database = os.getenv("MYSQLDATABASE")
     
-    print(f"Connecting to MySQL: host={host}, port={port}, user={user}, db={database}")
-    
     if not host:
         raise Exception("MYSQLHOST environment variable not set")
     return mysql.connector.connect(
@@ -33,7 +31,8 @@ def get_db_connection():
         port=int(port) if port else 3306,
         user=user,
         password=password,
-        database=database
+        database=database,
+        buffered=True
     )
 
 def init_db():
@@ -51,6 +50,7 @@ def init_db():
         )
     """)
     conn.commit()
+    cursor.fetchall()
     cursor.close()
     conn.close()
 
@@ -91,6 +91,7 @@ def health_check():
         conn = get_db_connection()
         cursor = conn.cursor()
         cursor.execute("SELECT 1")
+        cursor.fetchall()
         cursor.close()
         conn.close()
         return {"status": "healthy", "database": "connected"}
