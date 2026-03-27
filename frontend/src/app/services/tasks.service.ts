@@ -1,4 +1,5 @@
 import { Injectable } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
 import { Firestore, collection, collectionData, addDoc, updateDoc, deleteDoc, doc, CollectionReference } from '@angular/fire/firestore';
 import { Observable } from 'rxjs';
 import { Task } from '../models/tasks.model';
@@ -11,7 +12,7 @@ export class TasksService {
   private tasksCollection: CollectionReference<Task>;
   private readonly RAILWAY_API_URL = 'https://task-manager-app-production-0fb2.up.railway.app';
 
-  constructor(private firestore: Firestore) {
+  constructor(private firestore: Firestore, private http: HttpClient) {
     this.tasksCollection = collection(this.firestore, 'tasks') as CollectionReference<Task>;
   }
 
@@ -29,28 +30,16 @@ export class TasksService {
       fechaRegistro: task.fechaRegistro ? new Date(task.fechaRegistro).toISOString() : new Date().toISOString(),
       fechaLimite: task.fechaLimite ? new Date(task.fechaLimite).toISOString() : null
     };
-    
-    const url = `${this.RAILWAY_API_URL}/tasks`;
-    console.log('Attempting to mirror to Railway:', url);
-    console.log('Task data:', taskWithId);
-    alert('Enviando a Railway: ' + url);
-    
+
     try {
-      const response = await fetch(url, {
+      const response = await fetch(`${this.RAILWAY_API_URL}/tasks`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(taskWithId)
       });
-      console.log('Railway response:', response.status);
-      alert('Railway response: ' + response.status);
-      if (!response.ok) {
-        const error = await response.text();
-        console.error('Railway error:', error);
-        alert('Railway error: ' + error);
-      }
+      console.log('Task mirrored to Railway:', response.status);
     } catch (error) {
-      console.error('Failed to mirror to Railway:', error);
-      alert('Error: ' + error);
+      console.error('Failed to mirror task to Railway:', error);
     }
     
     return docRef;
@@ -59,36 +48,28 @@ export class TasksService {
   async updateTask(id: string, task: Task) {
     const taskDoc = doc(this.firestore, `tasks/${id}`);
     await updateDoc(taskDoc, { ...task });
-    
+
     const taskUpdate = {
       nombreTarea: task.nombreTarea,
       descripcion: task.descripcion,
       fechaLimite: task.fechaLimite ? new Date(task.fechaLimite).toISOString() : null,
       completada: task.completada
     };
-    
-    try {
-      await fetch(`${this.RAILWAY_API_URL}/tasks/${id}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(taskUpdate)
-      });
-    } catch (error) {
-      console.error('Failed to update in Railway:', error);
-    }
+
+    this.http.put(`${this.RAILWAY_API_URL}/tasks/${id}`, taskUpdate).subscribe({
+      next: () => console.log('Task updated in Railway'),
+      error: (err) => console.error('Failed to update in Railway:', err)
+    });
   }
 
   async deleteTask(id: string) {
     const taskDoc = doc(this.firestore, `tasks/${id}`);
     await deleteDoc(taskDoc);
-    
-    try {
-      await fetch(`${this.RAILWAY_API_URL}/tasks/${id}`, {
-        method: 'DELETE'
-      });
-    } catch (error) {
-      console.error('Failed to delete from Railway:', error);
-    }
+
+    this.http.delete(`${this.RAILWAY_API_URL}/tasks/${id}`).subscribe({
+      next: () => console.log('Task deleted from Railway'),
+      error: (err) => console.error('Failed to delete from Railway:', err)
+    });
   }
 
 }

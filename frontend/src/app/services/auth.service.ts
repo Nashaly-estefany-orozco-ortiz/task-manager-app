@@ -1,4 +1,5 @@
 import { Injectable } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
 import { Auth, signInWithPopup, GoogleAuthProvider, 
          signOut, user } from '@angular/fire/auth';
 import { Observable } from 'rxjs';
@@ -11,7 +12,7 @@ export class AuthService {
   user$: Observable<any>;
   private readonly RAILWAY_API_URL = 'https://task-manager-app-production-0fb2.up.railway.app';
 
-  constructor(private auth: Auth) {
+  constructor(private auth: Auth, private http: HttpClient) {
     this.user$ = user(this.auth);
   }
 
