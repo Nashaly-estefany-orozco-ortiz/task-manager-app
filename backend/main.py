@@ -18,15 +18,15 @@ app.add_middleware(
 )
 
 def get_db_connection():
-    host = os.getenv("MYSQL_HOST")
+    host = os.getenv("MYSQLHOST")
     if not host:
-        raise Exception("MYSQL_HOST environment variable not set")
+        raise Exception("MYSQLHOST environment variable not set")
     return mysql.connector.connect(
         host=host,
-        port=int(os.getenv("MYSQL_PORT", 3306)),
-        user=os.getenv("MYSQL_USER"),
-        password=os.getenv("MYSQL_PASSWORD"),
-        database=os.getenv("MYSQL_DATABASE")
+        port=int(os.getenv("MYSQLPORT", 3306)),
+        user=os.getenv("MYSQLUSER"),
+        password=os.getenv("MYSQLPASSWORD"),
+        database=os.getenv("MYSQLDATABASE")
     )
 
 def init_db():
