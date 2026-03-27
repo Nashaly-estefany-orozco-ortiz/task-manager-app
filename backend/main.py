@@ -98,6 +98,30 @@ def health_check():
     except Exception as e:
         return {"status": "error", "message": str(e)}
 
+@app.post("/init-tables")
+def init_tables():
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS tasks (
+                id VARCHAR(255) PRIMARY KEY,
+                nombreTarea VARCHAR(255) NOT NULL,
+                descripcion TEXT,
+                fechaRegistro DATETIME NOT NULL,
+                fechaLimite DATETIME,
+                completada BOOLEAN DEFAULT FALSE,
+                ownerId VARCHAR(255) NOT NULL
+            )
+        """)
+        conn.commit()
+        cursor.fetchall()
+        cursor.close()
+        conn.close()
+        return {"message": "Table created successfully"}
+    except Exception as e:
+        return {"error": str(e)}
+
 @app.post("/tasks", status_code=201)
 def create_task(task: Task):
     conn = get_db_connection()
